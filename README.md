@@ -82,7 +82,7 @@ Your Glue job needs permission to read from and write to S3.
 
 **📸 Screenshot: AWS Glue ETL Job**
 
-![alt text](<AWS Glue ETL Job.png>)
+![alt text](<AWS Glue Job.png>)
 
 > **Note:** The script is already configured to use the `swe-raw-data` and `swe-processed-data` buckets.
 
