@@ -49,8 +49,12 @@ Follow these steps to deploy the pipeline in your own AWS account.
 
 ### 2. Create S3 Buckets
 Create two S3 buckets with globally unique names:
-* `handsonfinallanding`: This is where you will upload your raw data.
-* `handsonfinalprocessed`: This is where the processed data and query results will be stored.
+* `swe-raw-data`: This is where you will upload your raw data.
+* `swe-processed-data`: This is where the processed data and query results will be stored.
+
+**📸 Screenshot: S3 Buckets**
+
+![alt text](<S3 buckets creation.png>)
 
 ### 3. Create IAM Role for AWS Glue
 Your Glue job needs permission to read from and write to S3.
@@ -62,6 +66,10 @@ Your Glue job needs permission to read from and write to S3.
 5.  Attach the `AmazonS3FullAccess` policy (for this demo) or a more restrictive policy that only grants access to your two buckets.
 6.  Name the role `AWSGlueServiceRole-Reviews` and create it.
 
+**📸 Screenshot: IAM Role**
+
+![alt text](<IAM Role.png>)
+
 ### 4. Create the AWS Glue ETL Job
 1.  Go to the **AWS Glue** service.
 2.  In the navigation pane, click on **ETL jobs**.
@@ -72,7 +80,11 @@ Your Glue job needs permission to read from and write to S3.
 7.  Select the `AWSGlueServiceRole-Reviews` **IAM Role** you created in the previous step.
 8.  Save the job.
 
-> **Note:** The script is already configured to use the `handsonfinallanding` and `handsonfinalprocessed` buckets.
+**📸 Screenshot: AWS Glue ETL Job**
+
+![alt text](<AWS Glue ETL Job.png>)
+
+> **Note:** The script is already configured to use the `swe-raw-data` and `swe-processed-data` buckets.
 
 ### 5. Create the Lambda Trigger Function
 This function will start the Glue job when a file is uploaded.
@@ -80,9 +92,13 @@ This function will start the Glue job when a file is uploaded.
 1.  Go to the **AWS Lambda** service and **Create function**.
 2.  Select **Author from scratch**.
 3.  Set the **Function name** to `start_glue_job_trigger`.
-4.  Set the **Runtime** to **Python 3.10** (or any modern Python runtime).
+4.  Set the **Runtime** to **Python 3.14** (or any modern Python runtime).
 5.  **Permissions:** Under "Change default execution role," select **Create a new role with basic Lambda permissions**. This role will be automatically named.
 6.  Create the function.
+
+**📸 Screenshot: Lambda Trigger Function**
+
+![alt text](<Lambda Trigger Function.png>)
 
 #### 5a. Add Lambda Code
 Paste the contents of `src/lambda_function.py` into the code editor. Make sure the `GLUE_JOB_NAME` variable matches the name of your Glue job (`process_reviews_job`).
@@ -110,9 +126,13 @@ The new Lambda role needs permission to start a Glue job.
 1.  Go back to your Lambda function's main page.
 2.  Click **Add trigger**.
 3.  Select **S3** as the source.
-4.  Select your `handsonfinallanding` bucket.
+4.  Select your `swe-raw-data` bucket.
 5.  Set the **Event type** to `s3:ObjectCreated:*` (or "All object create events").
 6.  Acknowledge the recursive invocation warning and click **Add**.
+
+**📸 Screenshot: Lambda Trigger Function1**
+
+![alt text](<Lambda Trigger Function1.png>)
 
 ---
 
@@ -121,22 +141,47 @@ The new Lambda role needs permission to start a Glue job.
 Your pipeline is now fully deployed and automated!
 
 1.  Take the sample `reviews.csv` file from the `data/` directory.
-2.  Upload `reviews.csv` to the root of your `handsonfinallanding` S3 bucket.
+2.  Upload `reviews.csv` to the root of your `swe-raw-data` S3 bucket.
 3.  This will trigger the Lambda, which in turn starts the Glue job.
 4.  You can monitor the job's progress in the **AWS Glue** console under the **Monitoring** tab.
 
+**📸 Screenshot: Job Run**
+
+![alt text](<Job run.png>)
 ---
 
 ## 📈 Query Results
 
-After the job (which may take 2-3 minutes to run), navigate to your `handsonfinalprocessed` bucket. You will find the results in the `Athena Results/` folder, organized into sub-folders for each query:
+After the job (which may take 2-3 minutes to run), navigate to your `swe-processed-data` bucket. You will find the results in the `Athena Results/` folder, organized into sub-folders for each query:
 
-* `s3://handsonfinalprocessed/Athena Results/daily_review_counts/`
-* `s3://handsonfinalprocessed/Athena Results/top_5_customers/`
+* `s3://swe-processed-data/Athena Results/daily_reviews/`
+* `s3://handsonfinalprocessed/Athena Results/top_customers/`
 * `s3://handsonfinalprocessed/Athena Results/rating_distribution/`
 
-You will also find the complete, cleaned dataset in `s3://handsonfinalprocessed/processed-data/`.
+**📸 Screenshot: Results**
 
+![alt text](<Results.png>)
+
+You will also find the complete, cleaned dataset in `s3://swe-processed-data/processed-data/`.
+
+**📸 Screenshot: processed data**
+
+![alt text](<processed data.png>)
+
+---
+
+## 📈 Outputs
+**📸 Screenshot: Daily Reviews**
+
+![alt text](<daily reviews.png>)
+
+**📸 Screenshot: Top Customers**
+
+![alt text](<top customers.png>)
+
+**📸 Screenshot: Rating Distribution**
+
+![alt text](<rating distribution.png>)
 ---
 ## 🧹 Cleanup
 
