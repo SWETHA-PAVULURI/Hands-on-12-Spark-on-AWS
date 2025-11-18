@@ -84,8 +84,63 @@ glueContext.write_dynamic_frame.from_options(
 
 # Write the spark queries for following:
 # 2. Date wise review count: his query calculates the total number of reviews submitted per day.
+# Query: Reviews per day
+df_daily_reviews = spark.sql("""
+    SELECT 
+        review_date,
+        COUNT(*) AS reviews_per_day
+    FROM product_reviews
+    GROUP BY review_date
+    ORDER BY review_date ASC
+""")
+
+daily_reviews_frame = DynamicFrame.fromDF(df_daily_reviews.repartition(1), glueContext, "daily_reviews_df")
+glueContext.write_dynamic_frame.from_options(
+    frame=daily_reviews_frame,
+    connection_type="s3",
+    connection_options={"path": s3_analytics_path + "daily_reviews/"},
+    format="csv"
+)
+
 # 3. Top 5 Most Active Customers: This query identifies your "power users" by finding the customers who have submitted the most reviews.
+# Query: Top 5 customers by review count
+df_top_customers = spark.sql("""
+    SELECT 
+        customer_id, 
+        COUNT(*) as num_reviews
+    FROM product_reviews
+    GROUP BY customer_id
+    ORDER BY num_reviews DESC
+    LIMIT 5
+""")
+
+top_customers_frame = DynamicFrame.fromDF(df_top_customers.repartition(1), glueContext, "top_customers_df")
+glueContext.write_dynamic_frame.from_options(
+    frame=top_customers_frame,
+    connection_type="s3",
+    connection_options={"path": s3_analytics_path + "top_customers/"},
+    format="csv"
+)
+
 # 4. Overall Rating Distribution: This query shows the count for each star rating (1-star, 2-star, etc.)
+# Query: Review count by rating value
+df_rating_distribution = spark.sql("""
+    SELECT 
+        rating,
+        COUNT(*) as count_per_rating
+    FROM product_reviews
+    GROUP BY rating
+    ORDER BY rating ASC
+""")
+
+rating_distribution_frame = DynamicFrame.fromDF(df_rating_distribution.repartition(1), glueContext, "rating_dist_df")
+glueContext.write_dynamic_frame.from_options(
+    frame=rating_distribution_frame,
+    connection_type="s3",
+    connection_options={"path": s3_analytics_path + "rating_distribution/"},
+    format="csv"
+)
+
 
 
 job.commit()
